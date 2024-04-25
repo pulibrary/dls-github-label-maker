@@ -30,11 +30,14 @@ class Labeler
   # @param repos Array<String> List of repositories to apply labels to, aka ["pulibrary/figgy", "pulibrary/dpul"]
   def apply_labels(repos)
     repos.each do |repo|
-      labels_hash.values.each do |h|
+      labels_hash.each_value do |h|
         h[:labels].each do |label|
-          client.add_label(repo, label, h[:color])
-        rescue Octokit::UnprocessableEntity => e
-          client.update_label(repo, label, { color: h[:color] }) if already_exists_error?(e.message)
+          name = label[:name]
+          begin
+            client.add_label(repo, name, h[:color])
+          rescue Octokit::UnprocessableEntity => e
+            client.update_label(repo, name, { color: h[:color] }) if already_exists_error?(e.message)
+          end
         end
       end
     end
